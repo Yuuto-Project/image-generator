@@ -1,2 +1,4 @@
 *
+!images/.gitignore
+!images/dialog/.gitignore
 !.gitignore
