@@ -49,7 +49,7 @@ class GenerateImagesCommand extends Command {
     private function generateDialog()
     {
         $imagesBasePath = resource_path('images/dialog/');
-        $outputPath = storage_path('images/dialog/');
+        $outputPath = storage_path('app/images/dialog/');
 
         // loop over backgrounds
         //    -> loop over characters
