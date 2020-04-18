@@ -20,8 +20,8 @@ class GenerateImagesCommand extends Command {
 
     private function generateDialog()
     {
-        $imagesBasePath = __DIR__.'/../../../resources/images/dialog/';
-        $outputPath = __DIR__ . '/../../../storage/app/images/dialog/';
+        $imagesBasePath = resource_path('images/dialog/');
+        $outputPath = storage_path('images/dialog/');
 
         // loop over backgrounds
         //    -> loop over characters
