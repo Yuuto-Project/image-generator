@@ -104,9 +104,10 @@ $app->configure('app');
 //     App\Http\Middleware\ExampleMiddleware::class
 // ]);
 
-// $app->routeMiddleware([
-//     'auth' => App\Http\Middleware\Authenticate::class,
-// ]);
+$app->routeMiddleware([
+//    'auth' => App\Http\Middleware\Authenticate::class,
+    'throttle' => App\Http\Middleware\ThrottleRequests::class,
+]);
 
 /*
 |--------------------------------------------------------------------------
@@ -136,6 +137,9 @@ $app->configure('app');
 
 $app->router->group([
     'namespace' => 'App\Http\Controllers',
+    'middleware' => [
+        'throttle:15,60', // 10 requests per minute
+    ],
 ], function ($router) {
     require __DIR__.'/../routes/web.php';
 });
