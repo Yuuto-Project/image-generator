@@ -96,6 +96,11 @@ class GenerateImagesCommand extends Command {
                     0
                 );
 
+                $bgImg->scaleImage(
+                    $bgImg->getImageWidth() / 2,
+                    $bgImg->getImageHeight() / 2
+                );
+
                 $bgImg->writeImage($outputName);
 
                 $end = microtime(true);
