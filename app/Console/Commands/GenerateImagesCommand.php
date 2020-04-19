@@ -51,19 +51,14 @@ class GenerateImagesCommand extends Command {
         $imagesBasePath = resource_path('images/dialog/');
         $outputPath = storage_path('app/images/dialog/');
 
-        // loop over backgrounds
-        //    -> loop over characters
-        //    -> generate images with characters and backgrounds
-        //    -> Store image in cache
-
+        // load the characters and backgrounds
         $bgDir = new DirectoryIterator($imagesBasePath . 'backgrounds/');
+        $charDir = new DirectoryIterator($imagesBasePath . 'characters/');
 
-        foreach ($bgDir as $background) {
+        /*foreach ($bgDir as $background) {
             if ($background->isDot()) {
                 continue;
             }
-
-            $charDir = new DirectoryIterator($imagesBasePath . 'characters/');
 
             $bgName = $this->stripExtension($background->getFilename());
             $bgPath = $background->getRealPath();
@@ -107,6 +102,61 @@ class GenerateImagesCommand extends Command {
 
                 $this->info('Took ' . ($end - $start) . ' seconds to generate ' . $charName . ' on ' . $bgName);
             }
+        }*/
+
+        // Loop over the characters and load them before the backgrounds
+        // This is done to only load the character once and have more efficient code
+        foreach ($charDir as $character) {
+            if ($character->isDot()) {
+                continue;
+            }
+
+            $charName = $this->stripExtension($character->getFilename());
+            $charPath = $character->getRealPath();
+
+            $charImg = new Imagick($charPath);
+
+            foreach ($bgDir as $background) {
+                if ($background->isDot()) {
+                    continue;
+                }
+
+                $bgName = $this->stripExtension($background->getFilename());
+
+                $outputName = "{$outputPath}{$charName}_{$bgName}.png";
+
+                if (\file_exists($outputName)) {
+                    continue;
+                }
+
+                $bgPath = $background->getRealPath();
+
+                $start = microtime(true);
+
+                $bgImg = new Imagick($bgPath);
+
+                $bgImg->compositeImage(
+                    $charImg,
+                    Imagick::COMPOSITE_DEFAULT,
+                    0,
+                    0
+                );
+
+                $bgImg->scaleImage(
+                    $bgImg->getImageWidth() / 2,
+                    $bgImg->getImageHeight() / 2
+                );
+
+                $bgImg->writeImage($outputName);
+
+                $bgImg->destroy();
+
+                $end = microtime(true);
+
+                $this->info('Took ' . ($end - $start) . ' seconds to generate ' . $charName . ' on ' . $bgName);
+            }
+
+            $charImg->destroy();
         }
 
     }
