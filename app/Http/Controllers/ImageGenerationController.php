@@ -40,11 +40,6 @@ class ImageGenerationController extends Controller
 {
     const SCALE_FACTOR = 2;
 
-    public function __construct()
-    {
-        //
-    }
-
     public function dialog(Request $request)
     {
         $data = $this->validate($request, [
@@ -90,8 +85,22 @@ class ImageGenerationController extends Controller
             'transparent'
         );*/
 
-        // scaled down by half
         $textImage = $this->autofit_text_to_image(
+            $img,
+            $data['text'],
+            50 / self::SCALE_FACTOR,
+            680 / self::SCALE_FACTOR,
+            340 / self::SCALE_FACTOR,
+            0,
+            0,
+            resource_path('fonts/halogen.regular.ttf'),
+            'white',
+            1,
+            'transparent'
+        );
+
+        // scaled down by half
+        /*$textImage = $this->autofit_text_to_image(
             $img,
             $data['text'],
             25,
@@ -103,10 +112,10 @@ class ImageGenerationController extends Controller
             'white',
             1,
             'transparent'
-        );
+        );*/
 
 //        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 60, 730);
-        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 60 / self::SCALE_FACTOR, 730 / self::SCALE_FACTOR);
+        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 63 / self::SCALE_FACTOR, 730 / self::SCALE_FACTOR);
 //        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 30, 365);
 //        $textImage->destroy();
 
@@ -132,6 +141,8 @@ class ImageGenerationController extends Controller
             throw new BadRequestHttpException('This background does not exist.');
         }
 
+        $overlay = new Imagick(resource_path('images/dialog/flag_overlay.png'));
+        $ribbon = new Imagick(resource_path('images/dialog/ribbons/keitaro.png'));
         $char = new Imagick($charPath);
         $bg = new Imagick($bgPath);
 
@@ -142,11 +153,35 @@ class ImageGenerationController extends Controller
             0
         );
 
+        $bg->compositeImage(
+            $overlay,
+            Imagick::COMPOSITE_DEFAULT,
+            0,
+            0
+        );
+
+        $ribbon->scaleImage(
+            $ribbon->getImageWidth() / 1.3,
+            $ribbon->getImageHeight() / 1.3
+        );
+
+        /*$ribbon->scaleImage(
+            475,
+            206
+        );*/
+
+        $bg->compositeImage(
+            $ribbon,
+            Imagick::COMPOSITE_DEFAULT,
+            0,
+            653
+        );
+
         $textImage = $this->autofit_text_to_image(
             $bg,
             $data['text'],
             50,
-            690,
+            680,
             340,
             0,
             0,
@@ -156,7 +191,7 @@ class ImageGenerationController extends Controller
             'transparent'
         );
 
-        $bg->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 60, 730);
+        $bg->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 63, 730);
 
         return response($bg)->header('Content-Type', 'image/png');
     }

@@ -139,7 +139,7 @@ $app->routeMiddleware([
 $app->router->group([
     'namespace' => 'App\Http\Controllers',
     'middleware' => [
-        'throttle:15,60', // 10 requests per minute
+        'throttle:15,60', // 15 requests per minute
     ],
 ], function ($router) {
     require __DIR__.'/../routes/web.php';

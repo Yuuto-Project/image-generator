@@ -46,7 +46,6 @@ class GenerateImagesCommand extends Command {
         $this->info('Generated dialog templates');
     }
 
-
     private function generateDialog()
     {
         $imagesBasePath = resource_path('images/dialog/');
@@ -56,54 +55,7 @@ class GenerateImagesCommand extends Command {
         $bgDir = new DirectoryIterator($imagesBasePath . 'backgrounds/');
         $charDir = new DirectoryIterator($imagesBasePath . 'characters/');
 
-        /*foreach ($bgDir as $background) {
-            if ($background->isDot()) {
-                continue;
-            }
-
-            $bgName = $this->stripExtension($background->getFilename());
-            $bgPath = $background->getRealPath();
-
-            foreach ($charDir as $character) {
-                if ($character->isDot()) {
-                    continue;
-                }
-
-                $charName = $this->stripExtension($character->getFilename());
-
-                $outputName = "{$outputPath}{$charName}_{$bgName}.png";
-
-                if (\file_exists($outputName)) {
-                    continue;
-                }
-
-                $charPath = $character->getRealPath();
-
-                $start = microtime(true);
-
-                // We have to make a new image to combine them
-                $bgImg = new Imagick($bgPath);
-                $charImg = new Imagick($charPath);
-
-                $bgImg->compositeImage(
-                    $charImg,
-                    Imagick::COMPOSITE_DEFAULT,
-                    0,
-                    0
-                );
-
-                $bgImg->scaleImage(
-                    $bgImg->getImageWidth() / 2,
-                    $bgImg->getImageHeight() / 2
-                );
-
-                $bgImg->writeImage($outputName);
-
-                $end = microtime(true);
-
-                $this->info('Took ' . ($end - $start) . ' seconds to generate ' . $charName . ' on ' . $bgName);
-            }
-        }*/
+        $flagsTopLeft = new Imagick(resource_path('images/dialog/flag_overlay.png'));
 
         // Loop over the characters and load them before the backgrounds
         // This is done to only load the character once and have more efficient code
@@ -143,6 +95,13 @@ class GenerateImagesCommand extends Command {
                     0
                 );
 
+                $bgImg->compositeImage(
+                    $flagsTopLeft,
+                    Imagick::COMPOSITE_DEFAULT,
+                    0,
+                    0
+                );
+
                 $scale = ImageGenerationController::SCALE_FACTOR;
 
                 $bgImg->scaleImage(
@@ -162,6 +121,7 @@ class GenerateImagesCommand extends Command {
             $charImg->destroy();
         }
 
+        $flagsTopLeft->destroy();
     }
 
     private function stripExtension(string $name): string
