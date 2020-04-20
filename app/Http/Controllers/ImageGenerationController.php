@@ -38,6 +38,8 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class ImageGenerationController extends Controller
 {
+    const SCALE_FACTOR = 2;
+
     public function __construct()
     {
         //
@@ -74,8 +76,22 @@ class ImageGenerationController extends Controller
             'transparent'
         );*/
 
-        // scaled down by half
         $textImage = $this->autofit_text_to_image(
+            $img,
+            $data['text'],
+            50 / self::SCALE_FACTOR,
+            690 / self::SCALE_FACTOR,
+            (350 / self::SCALE_FACTOR) - 10,
+            0,
+            0,
+            resource_path('fonts/halogen.regular.ttf'),
+            'white',
+            1,
+            'transparent'
+        );
+
+        // scaled down by half
+        /*$textImage = $this->autofit_text_to_image(
             $img,
             $data['text'],
             25,
@@ -87,10 +103,11 @@ class ImageGenerationController extends Controller
             'white',
             1,
             'transparent'
-        );
+        );*/
 
 //        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 60, 730);
-        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 30, 365);
+        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 60 / self::SCALE_FACTOR, 730 / self::SCALE_FACTOR);
+//        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 30, 365);
 //        $textImage->destroy();
 
         return response($img)->header('Content-Type', 'image/png');

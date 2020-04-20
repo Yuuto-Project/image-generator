@@ -30,6 +30,7 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Controllers\ImageGenerationController;
 use DirectoryIterator;
 use Illuminate\Console\Command;
 use Imagick;
@@ -142,9 +143,11 @@ class GenerateImagesCommand extends Command {
                     0
                 );
 
+                $scale = ImageGenerationController::SCALE_FACTOR;
+
                 $bgImg->scaleImage(
-                    $bgImg->getImageWidth() / 2,
-                    $bgImg->getImageHeight() / 2
+                    $bgImg->getImageWidth() / $scale,
+                    $bgImg->getImageHeight() / $scale
                 );
 
                 $bgImg->writeImage($outputName);
