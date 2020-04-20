@@ -55,7 +55,7 @@ class ImageGenerationController extends Controller
 
         $cachedImage = storage_path("app/images/dialog/$data[character]_$data[background].png");
 
-        if (!file_exists($cachedImage)) {
+        if (!\file_exists($cachedImage)) {
             throw new BadRequestHttpException('This character and background combination does not exist.');
         }
 
@@ -76,7 +76,7 @@ class ImageGenerationController extends Controller
             'transparent'
         );*/
 
-        $textImage = $this->autofit_text_to_image(
+        /*$textImage = $this->autofit_text_to_image(
             $img,
             $data['text'],
             50 / self::SCALE_FACTOR,
@@ -88,10 +88,10 @@ class ImageGenerationController extends Controller
             'white',
             1,
             'transparent'
-        );
+        );*/
 
         // scaled down by half
-        /*$textImage = $this->autofit_text_to_image(
+        $textImage = $this->autofit_text_to_image(
             $img,
             $data['text'],
             25,
@@ -103,7 +103,7 @@ class ImageGenerationController extends Controller
             'white',
             1,
             'transparent'
-        );*/
+        );
 
 //        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 60, 730);
         $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 60 / self::SCALE_FACTOR, 730 / self::SCALE_FACTOR);
@@ -111,6 +111,54 @@ class ImageGenerationController extends Controller
 //        $textImage->destroy();
 
         return response($img)->header('Content-Type', 'image/png');
+    }
+
+    public function dialogRaw(Request $request)
+    {
+        $data = $this->validate($request, [
+            'background' => 'required|string',
+            'character' => 'required|string',
+            'text' => 'required|string|max:120',
+        ]);
+
+        $charPath = resource_path("images/dialog/characters/$data[character].png");
+        $bgPath = resource_path("images/dialog/backgrounds/$data[background].png");
+
+        if (!\file_exists($charPath)) {
+            throw new BadRequestHttpException('This character does not exist.');
+        }
+
+        if (!\file_exists($bgPath)) {
+            throw new BadRequestHttpException('This background does not exist.');
+        }
+
+        $char = new Imagick($charPath);
+        $bg = new Imagick($bgPath);
+
+        $bg->compositeImage(
+            $char,
+            Imagick::COMPOSITE_DEFAULT,
+            0,
+            0
+        );
+
+        $textImage = $this->autofit_text_to_image(
+            $bg,
+            $data['text'],
+            50,
+            690,
+            340,
+            0,
+            0,
+            resource_path('fonts/halogen.regular.ttf'),
+            'white',
+            1,
+            'transparent'
+        );
+
+        $bg->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 60, 730);
+
+        return response($bg)->header('Content-Type', 'image/png');
     }
 
     /**

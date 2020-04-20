@@ -132,7 +132,7 @@ class GenerateImagesCommand extends Command {
 
                 $bgPath = $background->getRealPath();
 
-                $start = microtime(true);
+                $start = \microtime(true);
 
                 $bgImg = new Imagick($bgPath);
 
@@ -154,7 +154,7 @@ class GenerateImagesCommand extends Command {
 
                 $bgImg->destroy();
 
-                $end = microtime(true);
+                $end = \microtime(true);
 
                 $this->info('Took ' . ($end - $start) . ' seconds to generate ' . $charName . ' on ' . $bgName);
             }
