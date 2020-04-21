@@ -115,7 +115,7 @@ class ImageGenerationController extends Controller
         );*/
 
 //        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 60, 730);
-        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 63 / self::SCALE_FACTOR, 730 / self::SCALE_FACTOR);
+        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 66 / self::SCALE_FACTOR, 730 / self::SCALE_FACTOR);
 //        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 30, 365);
 //        $textImage->destroy();
 
@@ -207,7 +207,7 @@ class ImageGenerationController extends Controller
             'transparent'
         );
 
-        $bgImg->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 63, 730);
+        $bgImg->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 66, 730);
 
         $textImage->destroy();
 
