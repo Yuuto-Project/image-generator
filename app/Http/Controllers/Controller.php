@@ -30,9 +30,18 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Laravel\Lumen\Routing\Controller as BaseController;
 
 class Controller extends BaseController
 {
-    //
+    public function __construct()
+    {
+        static::buildResponseUsing(static function ($response, $errors) {
+            return new JsonResponse([
+                'message' => 'The given data is invalid',
+                'errors' => $errors,
+            ]);
+        });
+    }
 }
