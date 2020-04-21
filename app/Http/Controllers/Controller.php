@@ -41,7 +41,7 @@ class Controller extends BaseController
             return new JsonResponse([
                 'message' => 'The given data is invalid',
                 'errors' => $errors,
-            ]);
+            ], 422);
         });
     }
 }
