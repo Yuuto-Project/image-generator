@@ -132,6 +132,7 @@ class ImageGenerationController extends Controller
 
         $charPath = resource_path("images/dialog/characters/$data[character].png");
         $bgPath = resource_path("images/dialog/backgrounds/$data[background].png");
+        $ribbonPath = resource_path("images/dialog/ribbons/$data[character].png");
 
         if (!\file_exists($charPath)) {
             throw new BadRequestHttpException('This character does not exist.');
@@ -141,24 +142,37 @@ class ImageGenerationController extends Controller
             throw new BadRequestHttpException('This background does not exist.');
         }
 
-        $overlay = new Imagick(resource_path('images/dialog/flag_overlay.png'));
-        $ribbon = new Imagick(resource_path('images/dialog/ribbons/keitaro.png'));
-        $char = new Imagick($charPath);
-        $bg = new Imagick($bgPath);
+        if (!\file_exists($ribbonPath)) {
+            throw new BadRequestHttpException('Ribbon is missing');
+        }
 
-        $bg->compositeImage(
-            $char,
+        $flagsTopLeft = new Imagick(resource_path('images/dialog/flag_overlay.png'));
+        $ribbon = new Imagick($ribbonPath);
+        $charImg = new Imagick($charPath);
+        $bgImg = new Imagick($bgPath);
+
+        $bgImg->compositeImage(
+            $charImg,
             Imagick::COMPOSITE_DEFAULT,
             0,
             0
         );
 
-        $bg->compositeImage(
-            $overlay,
-            Imagick::COMPOSITE_DEFAULT,
-            0,
-            0
+        $charImg->destroy();
+
+        $flagsTopLeft->scaleImage(
+            $flagsTopLeft->getImageWidth() / 1.3,
+            $flagsTopLeft->getImageHeight() / 1.3
         );
+
+        $bgImg->compositeImage(
+            $flagsTopLeft,
+            Imagick::COMPOSITE_DEFAULT,
+            $bgImg->getImageWidth() - $flagsTopLeft->getImageWidth(),
+            10
+        );
+
+        $flagsTopLeft->destroy();
 
         $ribbon->scaleImage(
             $ribbon->getImageWidth() / 1.3,
@@ -170,15 +184,17 @@ class ImageGenerationController extends Controller
             206
         );*/
 
-        $bg->compositeImage(
+        $bgImg->compositeImage(
             $ribbon,
             Imagick::COMPOSITE_DEFAULT,
             0,
             653
         );
 
+        $ribbon->destroy();
+
         $textImage = $this->autofit_text_to_image(
-            $bg,
+            $bgImg,
             $data['text'],
             50,
             680,
@@ -191,9 +207,11 @@ class ImageGenerationController extends Controller
             'transparent'
         );
 
-        $bg->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 63, 730);
+        $bgImg->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 63, 730);
 
-        return response($bg)->header('Content-Type', 'image/png');
+        $textImage->destroy();
+
+        return response($bgImg)->header('Content-Type', 'image/png');
     }
 
     /**
