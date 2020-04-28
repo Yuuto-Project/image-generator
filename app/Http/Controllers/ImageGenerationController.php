@@ -115,7 +115,7 @@ class ImageGenerationController extends Controller
         );*/
 
 //        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 60, 730);
-        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 66 / self::SCALE_FACTOR, 730 / self::SCALE_FACTOR);
+        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 68 / self::SCALE_FACTOR, 730 / self::SCALE_FACTOR);
 //        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 30, 365);
 //        $textImage->destroy();
 
@@ -150,6 +150,7 @@ class ImageGenerationController extends Controller
         $ribbon = new Imagick($ribbonPath);
         $charImg = new Imagick($charPath);
         $bgImg = new Imagick($bgPath);
+        $textBox = new Imagick(resource_path('images/dialog/text_box.png'));
 
         $bgImg->compositeImage(
             $charImg,
@@ -159,6 +160,21 @@ class ImageGenerationController extends Controller
         );
 
         $charImg->destroy();
+
+        $textBox->scaleImage(
+//            $textBox->getImageWidth() / 1.5,
+            810, // width of the images
+            $textBox->getImageHeight() / 1.44
+        );
+
+        $bgImg->compositeImage(
+            $textBox,
+            Imagick::COMPOSITE_DEFAULT,
+            0,
+            $bgImg->getImageHeight() - $textBox->getImageHeight() + 13
+        );
+
+        $textBox->destroy();
 
         $flagsTopLeft->scaleImage(
             $flagsTopLeft->getImageWidth() / 1.3,
@@ -198,20 +214,20 @@ class ImageGenerationController extends Controller
             $data['text'],
             50,
             680,
-            340,
+            320,
             0,
             0,
             resource_path('fonts/halogen.regular.ttf'),
             'white',
             1,
-            'transparent'
+            'rgba(0,0,0,0.6)'
         );
 
-        $bgImg->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 66, 730);
+        $bgImg->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 68, 730);
 
         $textImage->destroy();
 
-        return response($bgImg)->header('Content-Type', 'image/png');
+        return response($bgImg)->header('Content-Type', 'image/png')->header('Cache-Control', 'no-cache');
     }
 
     /**

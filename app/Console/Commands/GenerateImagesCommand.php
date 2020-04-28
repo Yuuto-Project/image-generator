@@ -57,11 +57,17 @@ class GenerateImagesCommand extends Command {
         $charDir = new DirectoryIterator($imagesBasePath . 'characters/');
 
         $flagsTopLeft = new Imagick(resource_path('images/dialog/flag_overlay.png'));
+        $textBox = new Imagick(resource_path('images/dialog/text_box.png'));
 
         // Scale the flags down a bit
         $flagsTopLeft->scaleImage(
             $flagsTopLeft->getImageWidth() / 1.3,
             $flagsTopLeft->getImageHeight() / 1.3
+        );
+
+        $textBox->scaleImage(
+            810, // width of the images
+            $textBox->getImageHeight() / 1.44
         );
 
         // Loop over the characters and load them before the backgrounds
@@ -117,6 +123,13 @@ class GenerateImagesCommand extends Command {
                 );
 
                 $bgImg->compositeImage(
+                    $textBox,
+                    Imagick::COMPOSITE_DEFAULT,
+                    0,
+                    $bgImg->getImageHeight() - $textBox->getImageHeight() + 13
+                );
+
+                $bgImg->compositeImage(
                     $flagsTopLeft,
                     Imagick::COMPOSITE_DEFAULT,
                     $bgImg->getImageWidth() - $flagsTopLeft->getImageWidth(),
@@ -150,6 +163,7 @@ class GenerateImagesCommand extends Command {
         }
 
         $flagsTopLeft->destroy();
+        $textBox->destroy();
     }
 
     private function stripExtension(string $name): string
