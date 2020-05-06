@@ -56,35 +56,6 @@ class ImageGenerationController extends Controller
 
         $img = new Imagick($cachedImage);
 
-        // full size images
-        /*$textImage = $this->autofit_text_to_image(
-            $img,
-            $data['text'],
-            50,
-            690,
-            350,
-            0,
-            0,
-            resource_path('fonts/halogen.regular.ttf'),
-            'white',
-            1,
-            'transparent'
-        );*/
-
-        /*$textImage = $this->autofit_text_to_image(
-            $img,
-            $data['text'],
-            50 / self::SCALE_FACTOR,
-            690 / self::SCALE_FACTOR,
-            (350 / self::SCALE_FACTOR) - 10,
-            0,
-            0,
-            resource_path('fonts/halogen.regular.ttf'),
-            'white',
-            1,
-            'transparent'
-        );*/
-
         $textImage = $this->autofit_text_to_image(
             $img,
             $data['text'],
@@ -99,25 +70,7 @@ class ImageGenerationController extends Controller
             'transparent'
         );
 
-        // scaled down by half
-        /*$textImage = $this->autofit_text_to_image(
-            $img,
-            $data['text'],
-            25,
-            345,
-            170,
-            0,
-            0,
-            resource_path('fonts/halogen.regular.ttf'),
-            'white',
-            1,
-            'transparent'
-        );*/
-
-//        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 60, 730);
         $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 68 / self::SCALE_FACTOR, 730 / self::SCALE_FACTOR);
-//        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 30, 365);
-//        $textImage->destroy();
 
         return response($img)->header('Content-Type', 'image/png');
     }
@@ -194,11 +147,6 @@ class ImageGenerationController extends Controller
             $ribbon->getImageWidth() / 1.3,
             $ribbon->getImageHeight() / 1.3
         );
-
-        /*$ribbon->scaleImage(
-            475,
-            206
-        );*/
 
         $bgImg->compositeImage(
             $ribbon,
