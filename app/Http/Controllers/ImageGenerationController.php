@@ -58,7 +58,7 @@ class ImageGenerationController extends Controller
         $box->setFontFace(resource_path('fonts/halogen.regular.ttf'));
         $box->setBackgroundColor(new Color(0, 0, 0));
         $box->setFontColor(new Color(255, 255, 255));
-        $box->setFontSize(30);
+        $box->setFontSize(\strlen($data['text']) < 62 ? 30 : 20);
         $box->setBox(
             68 / self::SCALE_FACTOR,
             730 / self::SCALE_FACTOR,

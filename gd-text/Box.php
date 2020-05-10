@@ -347,31 +347,28 @@ class Box
         // Split text explicitly into lines by \n, \r\n and \r
         $explicitLines = preg_split('/\n|\r\n?/', $text);
         foreach ($explicitLines as $line) {
-            // Check every line if it needs to be wrapped
-            if((strpos($line, ' ')))
-            {
-                $words = explode(" ", $line);
+            if (\strpos($line, ' ') !== false) {
+                // Check every line if it needs to be wrapped
+                $words = explode(' ', $line);
                 $line = $words[0];
-
                 for ($i = 1; $i < count($words); $i++) {
-                    $box = $this->calculateBox($line." ".$words[$i]);
-                    if (($box[4]-$box[6]) >= $this->box['width']) {
+                    $box = $this->calculateBox($line.' '.$words[$i]);
+                    if ($box->getWidth() >= $this->box->getWidth()) {
                         $lines[] = $line;
                         $line = $words[$i];
                     } else {
-                        $line .= " ".$words[$i];
+                        $line .= ' '.$words[$i];
                     }
                 }
-            }
-            else
-            {
+                $lines[] = $line;
+            } else {
                 //If there are no spaces, append each character and create a new line when an overrun occurs
                 $string = $line;
                 $line = $string[0];
 
                 for ($i = 1; $i < strlen($string); $i++) {
                     $box = $this->calculateBox($line.$string[$i]);
-                    if (($box[4]-$box[6]) >= $this->box['width']) {
+                    if ($box->getWidth() >= $this->box->getWidth()) {
                         $lines[] = $line;
                         $line = $string[$i];
                     } else {
@@ -379,8 +376,6 @@ class Box
                     }
                 }
             }
-
-            $lines[] = $line;
         }
         return $lines;
     }
