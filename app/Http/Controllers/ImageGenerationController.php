@@ -53,7 +53,6 @@ class ImageGenerationController extends Controller
         }
 
         $im = \imagecreatefrompng($cachedImage);
-        $white = \imagecolorallocate($im, 255, 255, 255);
 
         $box = new Box($im);
         $box->setFontFace(resource_path('fonts/halogen.regular.ttf'));
