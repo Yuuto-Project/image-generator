@@ -31,12 +31,53 @@ use ImagickDraw;
 use ImagickPixel;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use GDText\Box;
+use GDText\Color;
 
 class ImageGenerationController extends Controller
 {
     const SCALE_FACTOR = 2;
 
     public function dialog(Request $request)
+    {
+        $data = $this->validate($request, [
+            'background' => 'required|string',
+            'character' => 'required|string',
+            'text' => 'required|string|max:120',
+        ]);
+
+        $cachedImage = storage_path("app/images/dialog/$data[character]_$data[background].png");
+
+        if (!\file_exists($cachedImage)) {
+            throw new BadRequestHttpException('This character and background combination does not exist.');
+        }
+
+        $im = \imagecreatefrompng($cachedImage);
+        $white = \imagecolorallocate($im, 255, 255, 255);
+
+        $box = new Box($im);
+        $box->setFontFace(resource_path('fonts/halogen.regular.ttf'));
+        $box->setBackgroundColor(new Color(0, 0, 0));
+        $box->setFontColor(new Color(255, 255, 255));
+        $box->setFontSize(30);
+        $box->setBox(
+            68 / self::SCALE_FACTOR,
+            730 / self::SCALE_FACTOR,
+            680 / self::SCALE_FACTOR,
+            340 / self::SCALE_FACTOR
+        );
+        // TODO: custom version? https://stackoverflow.com/a/52799317/4807235
+        $box->draw($data['text']);
+
+        \ob_start();
+        \imagepng($im);
+        $img = \ob_get_contents();
+        \ob_end_clean();
+
+        return response($img)->header('Content-Type', 'image/png');
+    }
+
+    public function dialog_imagick(Request $request)
     {
         $data = $this->validate($request, [
             'background' => 'required|string',
