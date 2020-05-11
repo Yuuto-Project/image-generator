@@ -26,11 +26,10 @@
 
 namespace App\Http\Controllers;
 
-use Imagick;
-use ImagickDraw;
-use ImagickPixel;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use GDText\Box;
+use GDText\Color;
 
 class ImageGenerationController extends Controller
 {
@@ -41,7 +40,7 @@ class ImageGenerationController extends Controller
         $data = $this->validate($request, [
             'background' => 'required|string',
             'character' => 'required|string',
-            'text' => 'required|string|max:120',
+            'text' => 'required|string|max:140',
         ]);
 
         $cachedImage = storage_path("app/images/dialog/$data[character]_$data[background].png");
@@ -50,23 +49,24 @@ class ImageGenerationController extends Controller
             throw new BadRequestHttpException('This character and background combination does not exist.');
         }
 
-        $img = new Imagick($cachedImage);
+        $im = \imagecreatefrompng($cachedImage);
 
-        $textImage = $this->autofit_text_to_image(
-            $img,
-            $data['text'],
-            50 / self::SCALE_FACTOR,
+        $box = new Box($im);
+        $box->setFontFace(resource_path('fonts/halogen.regular.ttf'));
+        $box->setFontColor(new Color(255, 255, 255));
+        $box->setFontSize(50 / self::SCALE_FACTOR);
+        $box->setBox(
+            68 / self::SCALE_FACTOR,
+            730 / self::SCALE_FACTOR,
             680 / self::SCALE_FACTOR,
-            340 / self::SCALE_FACTOR,
-            0,
-            0,
-            resource_path('fonts/halogen.regular.ttf'),
-            'white',
-            1,
-            'transparent'
+            340 / self::SCALE_FACTOR
         );
+        $box->drawFitFontSize($data['text'], 10, 80 / self::SCALE_FACTOR);
 
-        $img->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 68 / self::SCALE_FACTOR, 730 / self::SCALE_FACTOR);
+        \ob_start();
+        \imagepng($im);
+        $img = \ob_get_contents();
+        \ob_end_clean();
 
         return response($img)->header('Content-Type', 'image/png');
     }
@@ -76,7 +76,7 @@ class ImageGenerationController extends Controller
         $data = $this->validate($request, [
             'background' => 'required|string',
             'character' => 'required|string',
-            'text' => 'required|string|max:120',
+            'text' => 'required|string|max:140',
         ]);
 
         $charPath = resource_path("images/dialog/characters/$data[character].png");
@@ -95,173 +95,121 @@ class ImageGenerationController extends Controller
             throw new BadRequestHttpException('Ribbon is missing');
         }
 
-        $flagsTopLeft = new Imagick(resource_path('images/dialog/flag_overlay.png'));
-        $ribbon = new Imagick($ribbonPath);
-        $charImg = new Imagick($charPath);
-        $bgImg = new Imagick($bgPath);
-        $textBox = new Imagick(resource_path('images/dialog/text_box.png'));
+        $flagsTopLeft = \imagecreatefrompng(resource_path('images/dialog/flag_overlay.png'));
+        $ribbon = \imagecreatefrompng($ribbonPath);
+        $charImg = \imagecreatefrompng($charPath);
+        $bgImg = \imagecreatefrompng($bgPath);
+        $textBox = \imagecreatefrompng(resource_path('images/dialog/text_box.png'));
 
-        $bgImg->compositeImage(
-            $charImg,
-            Imagick::COMPOSITE_DEFAULT,
-            0,
-            0
-        );
-
-        $charImg->destroy();
-
-        $textBox->scaleImage(
-//            $textBox->getImageWidth() / 1.5,
-            810, // width of the images
-            $textBox->getImageHeight() / 1.44
-        );
-
-        $bgImg->compositeImage(
-            $textBox,
-            Imagick::COMPOSITE_DEFAULT,
-            0,
-            $bgImg->getImageHeight() - $textBox->getImageHeight() + 13
-        );
-
-        $textBox->destroy();
-
-        $flagsTopLeft->scaleImage(
-            $flagsTopLeft->getImageWidth() / 1.3,
-            $flagsTopLeft->getImageHeight() / 1.3
-        );
-
-        $bgImg->compositeImage(
-            $flagsTopLeft,
-            Imagick::COMPOSITE_DEFAULT,
-            $bgImg->getImageWidth() - $flagsTopLeft->getImageWidth(),
-            10
-        );
-
-        $flagsTopLeft->destroy();
-
-        $ribbon->scaleImage(
-            $ribbon->getImageWidth() / 1.3,
-            $ribbon->getImageHeight() / 1.3
-        );
-
-        $bgImg->compositeImage(
-            $ribbon,
-            Imagick::COMPOSITE_DEFAULT,
-            0,
-            653
-        );
-
-        $ribbon->destroy();
-
-        $textImage = $this->autofit_text_to_image(
+        \imagecopy(
             $bgImg,
-            $data['text'],
-            50,
-            680,
-            320,
+            $charImg,
             0,
             0,
-            resource_path('fonts/halogen.regular.ttf'),
-            'white',
-            1,
-            'rgba(0,0,0,0.6)'
+            0,
+            0,
+            \imagesx($charImg), // width
+            \imagesy($charImg) // height
         );
 
-        $bgImg->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 68, 730);
+        \imagedestroy($charImg);
 
-        $textImage->destroy();
+        $boxWith = \imagesx($textBox);
+        $boxHeight = \imagesy($textBox);
 
-        return response($bgImg)->header('Content-Type', 'image/png')->header('Cache-Control', 'no-cache');
-    }
+        $backgroundWidth = \imagesx($bgImg);
+        $backgroundHeight = \imagesy($bgImg);
 
-    /**
-     * Inspired from https://gist.github.com/clifgriffin/728cc3a4ce7b81fa2d8a
-     *
-     * @param Imagick $targeta
-     * @param string  $text
-     * @param int     $starting_font_size
-     * @param int     $max_width
-     * @param int     $max_height
-     * @param int     $x_pos
-     * @param int     $y_pos
-     * @param string  $font_file
-     * @param string  $font_color
-     * @param int     $line_height_ratio
-     * @param string  $background_color
-     *
-     * @return bool|Imagick
-     */
-    private function autofit_text_to_image(Imagick $targeta, string $text, int $starting_font_size,
-                                           int $max_width, int $max_height, int $x_pos, int $y_pos,
-                                           string $font_file, string $font_color = 'black', int $line_height_ratio = 1,
-                                           string $background_color = 'white')
-    {
-        if (!$targeta || empty($text) || !$font_file || empty($font_color) || empty($max_width) || empty($max_height)) {
-            return false;
-        }
+        $textBox = \imagescale(
+            $textBox,
+            $boxWith / 1.45,
+            $boxHeight / 1.44
+        );
 
-        // Load image into Imagick
-        $newImage = new Imagick();
-        $newImage->newImage($max_width, $max_height, $background_color);
+        $boxWith = $boxWith / 1.45;
+        $boxHeight = $boxHeight / 1.44;
 
-        // Instantiate Imagick utility objects
-        $draw = new ImagickDraw();
-        $pixel = new ImagickPixel($font_color);
+        \imagecopy(
+            $bgImg,
+            $textBox,
+            0,
+            $backgroundHeight - $boxHeight + 13,
+            0,
+            0,
+            $boxWith,
+            $boxHeight
+        );
 
-        // Load Font
-        $font_size = $starting_font_size;
-        $draw->setFont($font_file);
-        $draw->setFontSize($font_size);
-        $draw->setFillColor($pixel);
+        \imagedestroy($textBox);
 
-        // Holds calculated height of lines with given font, font size
-        $total_height = 0;
+        $flagsWidth = \imagesx($flagsTopLeft);
+        $flagsHeight = \imagesy($flagsTopLeft);
 
-        // Run until we find a font size that doesn't exceed $max_height in pixels
-        while (0 === $total_height || $total_height > $max_height) {
-            if ($total_height > 0) {
-                $font_size--; // we're still over height, decrement font size and try again
-            }
+        $flagsTopLeft = \imagescale(
+            $flagsTopLeft,
+            $flagsWidth / 1.3,
+            $flagsHeight / 1.3
+        );
 
-            $draw->setFontSize($font_size);
+        $flagsWidth = $flagsWidth / 1.3;
+        $flagsHeight = $flagsHeight / 1.3;
 
-            // Calculate number of lines / line height
-            // Props users Sarke / BMiner: http://stackoverflow.com/questions/5746537/how-can-i-wrap-text-using-imagick-in-php-so-that-it-is-drawn-as-multiline-text
-            $words = preg_split('%\s%', $text, -1, PREG_SPLIT_NO_EMPTY);
-            $lines = [];
-            $i = 0;
-            $line_height = 0;
+        \imagecopy(
+            $bgImg,
+            $flagsTopLeft,
+            $backgroundWidth - $flagsWidth,
+            10,
+            0,
+            0,
+            $flagsWidth,
+            $flagsHeight
+        );
 
-            while (count($words) > 0) {
-                $metrics = $newImage->queryFontMetrics($draw, implode(' ', array_slice($words, 0, ++$i)));
-                $line_height = max($metrics['textHeight'], $line_height);
+        \imagedestroy($flagsTopLeft);
 
-                if ($metrics['textWidth'] > $max_width || count($words) < $i) {
-                    // this indicates long words and forces the font to decrease in the first loop
-                    if ($i == 1) {
-                        $total_height = $max_height + 1;
-                        continue 2;
-                    }
+        $ribbonWidth = \imagesx($ribbon);
+        $ribbonHeight = \imagesy($ribbon);
 
-                    $lines[] = implode(' ', array_slice($words, 0, --$i));
-                    $words = array_slice($words, $i);
-                    $i = 0;
-                }
-            }
+        $ribbon = \imagescale(
+            $ribbon,
+            $ribbonWidth / 1.3,
+            $ribbonHeight / 1.3
+        );
 
-            $total_height = count($lines) * $line_height * $line_height_ratio;
+        $ribbonWidth = $ribbonWidth / 1.3;
+        $ribbonHeight = $ribbonHeight / 1.3;
 
-            if ($total_height === 0) {
-                return false; // don't run endlessly if something goes wrong
-            }
-        }
+        \imagecopy(
+            $bgImg,
+            $ribbon,
+            0,
+            653,
+            0,
+            0,
+            $ribbonWidth,
+            $ribbonHeight
+        );
 
-        // Writes text to image
-        for ($i = 0; $i < count($lines); $i++) {
-            $iToCalc = $i + 1;
-            $newImage->annotateImage($draw, $x_pos, $y_pos + ($iToCalc * $line_height * $line_height_ratio), 0, $lines[$i]);
-        }
+        \imagedestroy($ribbon);
 
-        return $newImage;
+        $box = new Box($bgImg);
+        $box->enableDebug();
+        $box->setFontFace(resource_path('fonts/halogen.regular.ttf'));
+        $box->setFontColor(new Color(255, 255, 255));
+        $box->setFontSize(50);
+        $box->setBox(
+            68,
+            730,
+            680,
+            340
+        );
+        $box->drawFitFontSize($data['text'], 10, 80);
+
+        \ob_start();
+        \imagepng($bgImg);
+        $img = \ob_get_contents();
+        \ob_end_clean();
+
+        return response($img)->header('Content-Type', 'image/png')->header('Cache-Control', 'no-cache');
     }
 }
