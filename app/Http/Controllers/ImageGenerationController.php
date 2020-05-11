@@ -57,17 +57,14 @@ class ImageGenerationController extends Controller
         $box = new Box($im);
         $box->setFontFace(resource_path('fonts/halogen.regular.ttf'));
         $box->setFontColor(new Color(255, 255, 255));
-
-        $fontSize = strlen($data['text']) < 62 ? 50 : 40;
-
-        $box->setFontSize($fontSize / self::SCALE_FACTOR);
+        $box->setFontSize(50 / self::SCALE_FACTOR);
         $box->setBox(
             68 / self::SCALE_FACTOR,
             730 / self::SCALE_FACTOR,
             680 / self::SCALE_FACTOR,
             340 / self::SCALE_FACTOR
         );
-        $box->draw($data['text']);
+        $box->drawFitFontSize($data['text'], 10, 80 / self::SCALE_FACTOR);
 
         \ob_start();
         \imagepng($im);
@@ -237,17 +234,14 @@ class ImageGenerationController extends Controller
         $box->setFontFace(resource_path('fonts/halogen.regular.ttf'));
         $box->setBackgroundColor(new Color(0, 0, 0));
         $box->setFontColor(new Color(255, 255, 255));
-
-        $fontSize = strlen($data['text']) < 62 ? 50 : 40;
-
-        $box->setFontSize($fontSize);
+        $box->setFontSize(50);
         $box->setBox(
             68,
             730,
             680,
             340
         );
-        $box->draw($data['text']);
+        $box->drawFitFontSize($data['text'], 10, 80);
 
         \ob_start();
         \imagepng($bgImg);
