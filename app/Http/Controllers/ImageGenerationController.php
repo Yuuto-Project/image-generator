@@ -35,6 +35,30 @@ class ImageGenerationController extends Controller
 {
     const SCALE_FACTOR = 2;
 
+    public function showInfo()
+    {
+        $charactersPath = resource_path('images/dialog/characters/');
+        $backgroundPath = resource_path('images/dialog/backgrounds/');
+
+        // Static so we don't get any context attached
+        $getFileNames = static function ($exp) {
+            $files = \glob($exp);
+
+            return \array_map(static function ($item) {
+                $split = explode('/', $item);
+                $last = \count($split) - 1;
+                $nameWithExt = $split[$last];
+
+                return \explode('.', $nameWithExt)[0];
+            }, $files);
+        };
+
+        return [
+            'characters' => $getFileNames($charactersPath . '*.png'),
+            'backgrounds' => $getFileNames($backgroundPath . '*.png'),
+        ];
+    }
+
     public function dialog(Request $request)
     {
         $data = $this->validate($request, [
