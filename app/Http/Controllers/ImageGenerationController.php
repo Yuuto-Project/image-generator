@@ -43,7 +43,7 @@ class ImageGenerationController extends Controller
         $data = $this->validate($request, [
             'background' => 'required|string',
             'character' => 'required|string',
-            'text' => 'required|string|max:120',
+            'text' => 'required|string|max:140',
         ]);
 
         $cachedImage = storage_path("app/images/dialog/$data[character]_$data[background].png");
@@ -65,7 +65,6 @@ class ImageGenerationController extends Controller
             680 / self::SCALE_FACTOR,
             340 / self::SCALE_FACTOR
         );
-        // TODO: custom version? https://stackoverflow.com/a/52799317/4807235
         $box->draw($data['text']);
 
         \ob_start();
@@ -81,7 +80,7 @@ class ImageGenerationController extends Controller
         $data = $this->validate($request, [
             'background' => 'required|string',
             'character' => 'required|string',
-            'text' => 'required|string|max:120',
+            'text' => 'required|string|max:140',
         ]);
 
         $cachedImage = storage_path("app/images/dialog/$data[character]_$data[background].png");
@@ -116,7 +115,130 @@ class ImageGenerationController extends Controller
         $data = $this->validate($request, [
             'background' => 'required|string',
             'character' => 'required|string',
-            'text' => 'required|string|max:120',
+            'text' => 'required|string|max:140',
+        ]);
+
+        $charPath = resource_path("images/dialog/characters/$data[character].png");
+        $bgPath = resource_path("images/dialog/backgrounds/$data[background].png");
+        $ribbonPath = resource_path("images/dialog/ribbons/$data[character].png");
+
+        if (!\file_exists($charPath)) {
+            throw new BadRequestHttpException('This character does not exist.');
+        }
+
+        if (!\file_exists($bgPath)) {
+            throw new BadRequestHttpException('This background does not exist.');
+        }
+
+        if (!\file_exists($ribbonPath)) {
+            throw new BadRequestHttpException('Ribbon is missing');
+        }
+
+        $flagsTopLeft = \imagecreatefrompng(resource_path('images/dialog/flag_overlay.png'));
+        $ribbon = \imagecreatefrompng($ribbonPath);
+        $charImg = \imagecreatefrompng($charPath);
+        $bgImg = \imagecreatefrompng($bgPath);
+        $textBox = \imagecreatefrompng(resource_path('images/dialog/text_box.png'));
+
+        \imagecopy(
+            $bgImg,
+            $charImg,
+            0,
+            0,
+            0,
+            0,
+            \imagesx($charImg), // width
+            \imagesy($charImg) // height
+        );
+
+        \imagedestroy($charImg);
+
+        $boxWith = \imagesx($textBox);
+        $boxHeight = \imagesy($textBox);
+
+        $backgroundHeight = \imagesy($bgImg);
+
+        $textBox = \imagescale(
+            $textBox,
+            $boxWith / 1.45,
+            $boxHeight / 1.44
+        );
+
+        \imagecopy(
+            $bgImg,
+            $textBox,
+            0,
+            $backgroundHeight - ($boxHeight / 1.44) + 13,
+            0,
+            0,
+            $boxWith / 1.45,
+            $boxHeight / 1.44
+        );
+
+        \imagedestroy($textBox);
+
+        /*
+
+        $flagsTopLeft->scaleImage(
+            $flagsTopLeft->getImageWidth() / 1.3,
+            $flagsTopLeft->getImageHeight() / 1.3
+        );
+
+        $bgImg->compositeImage(
+            $flagsTopLeft,
+            Imagick::COMPOSITE_DEFAULT,
+            $bgImg->getImageWidth() - $flagsTopLeft->getImageWidth(),
+            10
+        );
+
+        $flagsTopLeft->destroy();
+
+        $ribbon->scaleImage(
+            $ribbon->getImageWidth() / 1.3,
+            $ribbon->getImageHeight() / 1.3
+        );
+
+        $bgImg->compositeImage(
+            $ribbon,
+            Imagick::COMPOSITE_DEFAULT,
+            0,
+            653
+        );
+
+        $ribbon->destroy();
+
+        $textImage = $this->autofit_text_to_image(
+            $bgImg,
+            $data['text'],
+            50,
+            680,
+            320,
+            0,
+            0,
+            resource_path('fonts/halogen.regular.ttf'),
+            'white',
+            1,
+            'rgba(0,0,0,0.6)'
+        );
+
+        $bgImg->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 68, 730);
+
+        $textImage->destroy();*/
+
+        \ob_start();
+        \imagepng($bgImg);
+        $img = \ob_get_contents();
+        \ob_end_clean();
+
+        return response($img)->header('Content-Type', 'image/png')->header('Cache-Control', 'no-cache');
+    }
+
+    public function dialogRaw_imagick(Request $request)
+    {
+        $data = $this->validate($request, [
+            'background' => 'required|string',
+            'character' => 'required|string',
+            'text' => 'required|string|max:140',
         ]);
 
         $charPath = resource_path("images/dialog/characters/$data[character].png");

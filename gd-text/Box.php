@@ -343,7 +343,7 @@ class Box
      */
     protected function wrapTextWithOverflow($text)
     {
-        $lines = array();
+        $lines = [];
         // Split text explicitly into lines by \n, \r\n and \r
         $explicitLines = preg_split('/\n|\r\n?/', $text);
         foreach ($explicitLines as $line) {
@@ -366,7 +366,7 @@ class Box
                 $string = $line;
                 $line = $string[0];
 
-                for ($i = 1; $i < strlen($string); $i++) {
+                for ($i = 1; $i < \strlen($string); $i++) {
                     $box = $this->calculateBox($line.$string[$i]);
                     if ($box->getWidth() >= $this->box->getWidth()) {
                         $lines[] = $line;
@@ -376,6 +376,8 @@ class Box
                     }
                 }
             }
+
+            $lines[] = $line;
         }
         return $lines;
     }
