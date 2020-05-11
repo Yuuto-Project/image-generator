@@ -193,8 +193,8 @@ class ImageGenerationController extends Controller
         \imagedestroy($ribbon);
 
         $box = new Box($bgImg);
+        $box->enableDebug();
         $box->setFontFace(resource_path('fonts/halogen.regular.ttf'));
-        $box->setBackgroundColor(new Color(0, 0, 0));
         $box->setFontColor(new Color(255, 255, 255));
         $box->setFontSize(50);
         $box->setBox(
