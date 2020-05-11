@@ -70,7 +70,8 @@ class ImageGenerationController extends Controller
         $cachedImage = storage_path("app/images/dialog/$data[character]_$data[background].png");
 
         if (!\file_exists($cachedImage)) {
-            throw new BadRequestHttpException('This character and background combination does not exist.');
+            // If we are missing an item from the cache we can fall back to the slow real time generator
+            return $this->dialogRaw($request);
         }
 
         $im = \imagecreatefrompng($cachedImage);
@@ -85,7 +86,7 @@ class ImageGenerationController extends Controller
             680 / self::SCALE_FACTOR,
             340 / self::SCALE_FACTOR
         );
-        $box->drawFitFontSize($data['text'], 10, 80 / self::SCALE_FACTOR);
+        $box->drawFitFontSize($data['text'], 10, 100 / self::SCALE_FACTOR, 20 / self::SCALE_FACTOR);
 
         \ob_start();
         \imagepng($im);
@@ -227,7 +228,7 @@ class ImageGenerationController extends Controller
             680,
             340
         );
-        $box->drawFitFontSize($data['text'], 10, 80);
+        $box->drawFitFontSize($data['text'], 10, 100, 20);
 
         \ob_start();
         \imagepng($bgImg);
