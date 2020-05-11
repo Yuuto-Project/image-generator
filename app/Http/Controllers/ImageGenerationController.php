@@ -56,9 +56,11 @@ class ImageGenerationController extends Controller
 
         $box = new Box($im);
         $box->setFontFace(resource_path('fonts/halogen.regular.ttf'));
-        $box->setBackgroundColor(new Color(0, 0, 0));
         $box->setFontColor(new Color(255, 255, 255));
-        $box->setFontSize(\strlen($data['text']) < 62 ? 30 : 20);
+
+        $fontSize = strlen($data['text']) < 62 ? 50 : 40;
+
+        $box->setFontSize($fontSize / self::SCALE_FACTOR);
         $box->setBox(
             68 / self::SCALE_FACTOR,
             730 / self::SCALE_FACTOR,
@@ -206,39 +208,46 @@ class ImageGenerationController extends Controller
 
         \imagedestroy($flagsTopLeft);
 
-        /*
+        $ribbonWidth = \imagesx($ribbon);
+        $ribbonHeight = \imagesy($ribbon);
 
-        $ribbon->scaleImage(
-            $ribbon->getImageWidth() / 1.3,
-            $ribbon->getImageHeight() / 1.3
-        );
-
-        $bgImg->compositeImage(
+        $ribbon = \imagescale(
             $ribbon,
-            Imagick::COMPOSITE_DEFAULT,
-            0,
-            653
+            $ribbonWidth / 1.3,
+            $ribbonHeight / 1.3
         );
 
-        $ribbon->destroy();
+        $ribbonWidth = $ribbonWidth / 1.3;
+        $ribbonHeight = $ribbonHeight / 1.3;
 
-        $textImage = $this->autofit_text_to_image(
+        \imagecopy(
             $bgImg,
-            $data['text'],
-            50,
-            680,
-            320,
+            $ribbon,
+            0,
+            653,
             0,
             0,
-            resource_path('fonts/halogen.regular.ttf'),
-            'white',
-            1,
-            'rgba(0,0,0,0.6)'
+            $ribbonWidth,
+            $ribbonHeight
         );
 
-        $bgImg->compositeImage($textImage, Imagick::COMPOSITE_DEFAULT, 68, 730);
+        \imagedestroy($ribbon);
 
-        $textImage->destroy();*/
+        $box = new Box($bgImg);
+        $box->setFontFace(resource_path('fonts/halogen.regular.ttf'));
+        $box->setBackgroundColor(new Color(0, 0, 0));
+        $box->setFontColor(new Color(255, 255, 255));
+
+        $fontSize = strlen($data['text']) < 62 ? 50 : 40;
+
+        $box->setFontSize($fontSize);
+        $box->setBox(
+            68,
+            730,
+            680,
+            340
+        );
+        $box->draw($data['text']);
 
         \ob_start();
         \imagepng($bgImg);
