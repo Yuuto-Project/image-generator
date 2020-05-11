@@ -156,6 +156,7 @@ class ImageGenerationController extends Controller
         $boxWith = \imagesx($textBox);
         $boxHeight = \imagesy($textBox);
 
+        $backgroundWidth = \imagesx($bgImg);
         $backgroundHeight = \imagesy($bgImg);
 
         $textBox = \imagescale(
@@ -164,34 +165,48 @@ class ImageGenerationController extends Controller
             $boxHeight / 1.44
         );
 
+        $boxWith = $boxWith / 1.45;
+        $boxHeight = $boxHeight / 1.44;
+
         \imagecopy(
             $bgImg,
             $textBox,
             0,
-            $backgroundHeight - ($boxHeight / 1.44) + 13,
+            $backgroundHeight - $boxHeight + 13,
             0,
             0,
-            $boxWith / 1.45,
-            $boxHeight / 1.44
+            $boxWith,
+            $boxHeight
         );
 
         \imagedestroy($textBox);
 
-        /*
+        $flagsWidth = \imagesx($flagsTopLeft);
+        $flagsHeight = \imagesy($flagsTopLeft);
 
-        $flagsTopLeft->scaleImage(
-            $flagsTopLeft->getImageWidth() / 1.3,
-            $flagsTopLeft->getImageHeight() / 1.3
-        );
-
-        $bgImg->compositeImage(
+        $flagsTopLeft = \imagescale(
             $flagsTopLeft,
-            Imagick::COMPOSITE_DEFAULT,
-            $bgImg->getImageWidth() - $flagsTopLeft->getImageWidth(),
-            10
+            $flagsWidth / 1.3,
+            $flagsHeight / 1.3
         );
 
-        $flagsTopLeft->destroy();
+        $flagsWidth = $flagsWidth / 1.3;
+        $flagsHeight = $flagsHeight / 1.3;
+
+        \imagecopy(
+            $bgImg,
+            $flagsTopLeft,
+            $backgroundWidth - $flagsWidth,
+            10,
+            0,
+            0,
+            $flagsWidth,
+            $flagsHeight
+        );
+
+        \imagedestroy($flagsTopLeft);
+
+        /*
 
         $ribbon->scaleImage(
             $ribbon->getImageWidth() / 1.3,
