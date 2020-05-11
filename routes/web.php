@@ -27,4 +27,6 @@
 /** @var Laravel\Lumen\Routing\Router $router */
 
 $router->post('/dialog', ['uses' => 'ImageGenerationController@dialog']);
+$router->post('/dialog_imagick', ['uses' => 'ImageGenerationController@dialog_imagick']);
 $router->post('/dialog_raw', ['uses' => 'ImageGenerationController@dialogRaw']);
+$router->post('/dialog_raw_imagick', ['uses' => 'ImageGenerationController@dialogRaw_imagick']);
