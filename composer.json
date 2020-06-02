@@ -10,9 +10,10 @@
     "type": "project",
     "require": {
         "php": "^7.2.5",
+        "ext-gd": "*",
         "ext-imagick": "*",
-        "laravel/lumen-framework": "^7.0",
-        "ext-gd": "*"
+        "dunctebot/gd-text": "^1.2",
+        "laravel/lumen-framework": "^7.0"
     },
     "require-dev": {
         "fzaninotto/faker": "^1.9.1",
@@ -25,8 +26,7 @@
             "database/factories"
         ],
         "psr-4": {
-            "App\\": "app/",
-            "GDText\\": "gd-text/"
+            "App\\": "app/"
         }
     },
     "autoload-dev": {
