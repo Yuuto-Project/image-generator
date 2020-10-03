@@ -69,7 +69,7 @@ class GenerateImagesCommand extends Command {
         // Loop over the characters and load them before the backgrounds
         // This is done to only load the character once and have more efficient code
         foreach ($charDir as $character) {
-            if ($character->isDot()) {
+            if ($character->isDot() || $character->getFileInfo()->getExtension() === 'webp') {
                 continue;
             }
 
